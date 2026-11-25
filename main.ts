@@ -6,19 +6,23 @@ const MAX_CHARS = 200;
 const raw = readFileSync(new URL("./one-line.txt", import.meta.url), "utf8");
 const line = raw.endsWith("\n") ? raw.slice(0, -1) : raw;
 
+// Count Unicode code points, not UTF-16 units: the gate counts characters.
+const charCount = [...line].length;
+
 function fail(reason: string): never {
   console.error(`FAIL: ${reason}`);
   process.exit(1);
 }
 
 if (line.length === 0) fail("empty line");
-if (line.length > MAX_CHARS) fail(`line is ${line.length} characters, over the ${MAX_CHARS} limit`);
+if (charCount > MAX_CHARS) fail(`line is ${charCount} characters, over the ${MAX_CHARS} limit`);
 if (line.includes("\n")) fail("line contains a newline");
 if (line.includes("\r")) fail("line contains a carriage return");
+if (/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/.test(line)) fail("line contains a control character");
 if (line.endsWith(" ")) fail("line has a trailing space");
 if (line.startsWith(" ")) fail("line has a leading space");
 if (line.trim().length === 0) fail("line is only whitespace");
 if (!/[.!?]$/.test(line)) fail("line must end with terminal punctuation (. ! or ?)");
 
 console.log(line);
-console.log(`OK: ${line.length}/${MAX_CHARS} characters, single line, ends with punctuation.`);
+console.log(`OK: ${charCount}/${MAX_CHARS} characters, single line, ends with punctuation.`);

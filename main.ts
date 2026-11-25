@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
 const MAX_CHARS = 200;
 
@@ -23,6 +23,12 @@ if (line.endsWith(" ")) fail("line has a trailing space");
 if (line.startsWith(" ")) fail("line has a leading space");
 if (line.trim().length === 0) fail("line is only whitespace");
 if (!/[.!?]$/.test(line)) fail("line must end with terminal punctuation (. ! or ?)");
+
+// The sealed gate scorer reads /output/entry.txt (1-200 chars, UTF-8);
+// stdout alone scores Valid 0, so write the line to the entry file too.
+const outputDir = process.env.MAKEFUN_OUTPUT_DIR || "/output";
+mkdirSync(outputDir, { recursive: true });
+writeFileSync(`${outputDir}/entry.txt`, line, "utf8");
 
 console.log(line);
 console.log(`OK: ${charCount}/${MAX_CHARS} characters, single line, ends with punctuation.`);
